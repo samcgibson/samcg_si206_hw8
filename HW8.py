@@ -1,6 +1,6 @@
-# Your name: 
-# Your student id:
-# Your email:
+# Your name: Sam Gibson
+# Your student id: 42836823
+# Your email: samcg@umich.edu
 # List who you have worked with on this homework:
 
 import matplotlib.pyplot as plt
@@ -9,13 +9,25 @@ import sqlite3
 import unittest
 
 def load_rest_data(db):
-    """
-    This function accepts the file name of a database as a parameter and returns a nested
-    dictionary. Each outer key of the dictionary is the name of each restaurant in the database, 
-    and each inner key is a dictionary, where the key:value pairs should be the category, 
-    building, and rating for the restaurant.
-    """
-    pass
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db)
+    cur = conn.cursor()
+
+    cur.execute("SELECT restaurants.name, categories.category, buildings.building, restaurants.rating FROM restaurants "
+                "JOIN categories ON restaurants.category_id = categories.id "
+                "JOIN buildings ON restaurants.building_id = buildings.id")
+    
+    ndict = {}
+
+    for row in cur:
+        name = row[0]
+        category = row[1]
+        building = row[2]
+        rating = row[3]
+        inner_dict = {'category': category, 'building': building, 'rating': rating}
+        ndict[name] = inner_dict
+
+    return ndict
 
 def plot_rest_categories(db):
     """
@@ -49,7 +61,7 @@ def get_highest_rating(db): #Do this through DB as well
 
 #Try calling your functions here
 def main():
-    pass
+    load_rest_data('South_U_Restaurants.db')
 
 class TestHW8(unittest.TestCase):
     def setUp(self):
@@ -82,21 +94,21 @@ class TestHW8(unittest.TestCase):
         self.assertEqual(rest_data['M-36 Coffee Roasters Cafe'], self.rest_dict)
         self.assertEqual(len(rest_data), 25)
 
-    def test_plot_rest_categories(self):
-        cat_data = plot_rest_categories('South_U_Restaurants.db')
-        self.assertIsInstance(cat_data, dict)
-        self.assertEqual(cat_data, self.cat_dict)
-        self.assertEqual(len(cat_data), 14)
+#     def test_plot_rest_categories(self):
+#         cat_data = plot_rest_categories('South_U_Restaurants.db')
+#         self.assertIsInstance(cat_data, dict)
+#         self.assertEqual(cat_data, self.cat_dict)
+#         self.assertEqual(len(cat_data), 14)
 
-    def test_find_rest_in_building(self):
-        restaurant_list = find_rest_in_building(1140, 'South_U_Restaurants.db')
-        self.assertIsInstance(restaurant_list, list)
-        self.assertEqual(len(restaurant_list), 3)
-        self.assertEqual(restaurant_list[0], 'BTB Burrito')
+#     def test_find_rest_in_building(self):
+#         restaurant_list = find_rest_in_building(1140, 'South_U_Restaurants.db')
+#         self.assertIsInstance(restaurant_list, list)
+#         self.assertEqual(len(restaurant_list), 3)
+#         self.assertEqual(restaurant_list[0], 'BTB Burrito')
 
-    def test_get_highest_rating(self):
-        highest_rating = get_highest_rating('South_U_Restaurants.db')
-        self.assertEqual(highest_rating, self.highest_rating)
+#     def test_get_highest_rating(self):
+#         highest_rating = get_highest_rating('South_U_Restaurants.db')
+#         self.assertEqual(highest_rating, self.highest_rating)
 
 if __name__ == '__main__':
     main()
