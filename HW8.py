@@ -35,7 +35,17 @@ def plot_rest_categories(db):
     restaurant categories and the values should be the number of restaurants in each category. The function should
     also create a bar chart with restaurant categories and the count of number of restaurants in each category.
     """
-    pass
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db)
+    cur = conn.cursor()
+
+    cur.execute("SELECT category, COUNT(*) FROM restaurants JOIN categories ON restaurants.category_id = categories.id GROUP BY category")
+
+    cdict = {}
+    for row in cur:
+        cdict[row[0]] = row[1]
+
+    return cdict
 
 def find_rest_in_building(building_num, db):
     '''
@@ -61,7 +71,7 @@ def get_highest_rating(db): #Do this through DB as well
 
 #Try calling your functions here
 def main():
-    load_rest_data('South_U_Restaurants.db')
+    plot_rest_categories('South_U_Restaurants.db')
 
 class TestHW8(unittest.TestCase):
     def setUp(self):
@@ -94,21 +104,21 @@ class TestHW8(unittest.TestCase):
         self.assertEqual(rest_data['M-36 Coffee Roasters Cafe'], self.rest_dict)
         self.assertEqual(len(rest_data), 25)
 
-#     def test_plot_rest_categories(self):
-#         cat_data = plot_rest_categories('South_U_Restaurants.db')
-#         self.assertIsInstance(cat_data, dict)
-#         self.assertEqual(cat_data, self.cat_dict)
-#         self.assertEqual(len(cat_data), 14)
+    def test_plot_rest_categories(self):
+        cat_data = plot_rest_categories('South_U_Restaurants.db')
+        self.assertIsInstance(cat_data, dict)
+        self.assertEqual(cat_data, self.cat_dict)
+        self.assertEqual(len(cat_data), 14)
 
-#     def test_find_rest_in_building(self):
-#         restaurant_list = find_rest_in_building(1140, 'South_U_Restaurants.db')
-#         self.assertIsInstance(restaurant_list, list)
-#         self.assertEqual(len(restaurant_list), 3)
-#         self.assertEqual(restaurant_list[0], 'BTB Burrito')
+    # def test_find_rest_in_building(self):
+    #     restaurant_list = find_rest_in_building(1140, 'South_U_Restaurants.db')
+    #     self.assertIsInstance(restaurant_list, list)
+    #     self.assertEqual(len(restaurant_list), 3)
+    #     self.assertEqual(restaurant_list[0], 'BTB Burrito')
 
-#     def test_get_highest_rating(self):
-#         highest_rating = get_highest_rating('South_U_Restaurants.db')
-#         self.assertEqual(highest_rating, self.highest_rating)
+    # def test_get_highest_rating(self):
+    #     highest_rating = get_highest_rating('South_U_Restaurants.db')
+    #     self.assertEqual(highest_rating, self.highest_rating)
 
 if __name__ == '__main__':
     main()
