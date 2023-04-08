@@ -73,22 +73,52 @@ def find_rest_in_building(building_num, db):
 
 #EXTRA CREDIT
 def get_highest_rating(db): #Do this through DB as well
-    """
-    This function return a list of two tuples. The first tuple contains the highest-rated restaurant category 
-    and the average rating of the restaurants in that category, and the second tuple contains the building number 
-    which has the highest rating of restaurants and its average rating.
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db)
+    cur = conn.cursor()
+    fig, (ax1, ax2) = plt.subplots(2, figsize=([8, 7]))
 
-    This function should also plot two barcharts in one figure. The first bar chart displays the categories 
-    along the y-axis and their ratings along the x-axis in descending order (by rating).
-    The second bar chart displays the buildings along the y-axis and their ratings along the x-axis 
-    in descending order (by rating).
-    """
-    pass
+    cur.execute("SELECT categories.category, ROUND(AVG(rating), 1) as avg_rating FROM restaurants "
+                "JOIN categories ON restaurants.category_id = categories.id "
+                "GROUP BY category ORDER BY avg_rating")
 
+    ctgrs = []
+    rtgs = []
+
+    for row in cur:
+        ctgrs.append(row[0])
+        rtgs.append(row[1])
+
+    ax1.barh(ctgrs, rtgs, color='darkturquoise')
+    ax1.set_xlabel('Ratings')
+    ax1.set_ylabel('Restaurant Categories')
+    ax1.set_title('Average Restaurant Rating per Category')
+
+    cur.execute("SELECT buildings.building, ROUND(AVG(restaurants.rating), 1) as avgr FROM buildings JOIN restaurants "
+                "ON buildings.id = restaurants.building_id "
+                "GROUP BY building ORDER BY avgr")
+
+    xbuildings = []
+    yratings = []
+
+    for row in cur:
+        xbuildings.append(str(row[0]))
+        yratings.append(row[1])
+
+    ax2.barh(xbuildings, yratings, color='coral')
+    ax2.set_xlabel('Ratings')
+    ax2.set_ylabel('Restaurant Buildings')
+    ax2.set_title('Average Restaurant Rating per Building')
+    plt.tight_layout()
+    plt.show()
+
+    return [(ctgrs[-1], rtgs[-1]), (int(xbuildings[-1]), yratings[-1])]
+
+get_highest_rating('South_U_Restaurants.db')
+                
 #Try calling your functions here
 def main():
     pass
-
 class TestHW8(unittest.TestCase):
     def setUp(self):
         self.rest_dict = {
@@ -132,9 +162,9 @@ class TestHW8(unittest.TestCase):
         self.assertEqual(len(restaurant_list), 3)
         self.assertEqual(restaurant_list[0], 'BTB Burrito')
 
-    # def test_get_highest_rating(self):
-    #     highest_rating = get_highest_rating('South_U_Restaurants.db')
-    #     self.assertEqual(highest_rating, self.highest_rating)
+    def test_get_highest_rating(self):
+        highest_rating = get_highest_rating('South_U_Restaurants.db')
+        self.assertEqual(highest_rating, self.highest_rating)
 
 if __name__ == '__main__':
     main()
